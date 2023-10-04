@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public Item addItem(@RequestHeader("X-Sharer-User-Id") long userId, @RequestBody ItemDto itemDto) {
+    public Item addItem(@RequestHeader("X-Sharer-User-Id") long userId, @RequestBody @Valid ItemDto itemDto) {
         log.info("Create request to add item: " + itemDto);
         return itemService.addItem(userId, itemDto);
     }
@@ -42,7 +43,6 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public Item getItemById(@PathVariable long itemId) {
-
         log.info("Create request to find item with id = " + itemId);
         return itemService.getItemById(itemId);
     }

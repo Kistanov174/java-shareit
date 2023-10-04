@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user.service.impl;
+package ru.practicum.shareit.user.mapper;
 
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.model.User;

@@ -3,22 +3,17 @@ package ru.practicum.shareit.user.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import ru.practicum.shareit.exception.ObjectConflictException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.MappingUser;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
-import javax.validation.Validator;
-import javax.validation.ConstraintViolation;
-import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Collections;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -27,7 +22,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final MappingUser mappingUser;
-    private final Validator validator;
+
     @Override
     public List<User> findAllUsers() {
         return new ArrayList<>(userRepository.findAllUsers().orElseGet(ArrayList::new));
@@ -40,8 +35,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User addUser(@Valid UserDto userDto) {
-        validateUser(userDto);
+    public User addUser(UserDto userDto) {
         return userRepository.addUser(mappingUser.mapToUser(userDto))
                 .orElseThrow(() ->new ObjectNotFoundException("User :" + userDto + " hasn't added"));
     }
@@ -57,8 +51,8 @@ public class UserServiceImpl implements UserService {
             if (field.equals("email")) {
                 if (!fields.get(field).equals(user.getEmail())) {
                     checkEmail(fields.get(field));
+                    user.setEmail(fields.get(field));
                 }
-                user.setEmail(fields.get(field));
             }
         }
         userRepository.updateUser(user);
@@ -70,16 +64,8 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteUser(id);
     }
 
-    private void validateUser(UserDto userDto) {
-        Set<ConstraintViolation<UserDto>> constraintViolationSet = validator.validate(userDto);
-        if (!CollectionUtils.isEmpty(constraintViolationSet)) {
-            log.debug("Validation failed - " + constraintViolationSet);
-            throw new ValidationException("Validation failed " + constraintViolationSet);
-        }
-        checkEmail(userDto.getEmail());
-    }
-
-    private void checkEmail(String email) {
+    @Override
+    public void checkEmail(String email) {
         List<String> emails = userRepository.findAllUsers().orElseGet(Collections::emptyList).stream()
                 .map(User::getEmail)
                 .collect(Collectors.toList());

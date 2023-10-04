@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item.service.impl;
+package ru.practicum.shareit.item.mapper;
 
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -18,6 +18,6 @@ public class MappingItem {
         String name = itemDto.getName();
         String description = itemDto.getDescription();
         boolean available = itemDto.getAvailable();
-        return new Item(null, name, description, available, null);
+        return new Item(null, name, description, available, null, null);
     }
 }

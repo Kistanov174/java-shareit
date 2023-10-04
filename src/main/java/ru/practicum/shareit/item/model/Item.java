@@ -20,4 +20,5 @@ public class Item {
     private Boolean available;
     @NotBlank
     private Long ownerId;
+    private Long request;
 }

@@ -11,4 +11,5 @@ public interface UserService {
     User addUser(UserDto userDto);
     User updateUser(long id, Map<String, String> fields);
     void deleteUser(long id);
+    void checkEmail(String email);
 }

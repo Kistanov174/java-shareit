@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public class UserController {
     }
 
     @PostMapping
-    public User createUser(@RequestBody UserDto userDto) {
+    public User createUser(@RequestBody @Valid UserDto userDto) {
         log.info("Create request to add user: " + userDto);
         return userService.addUser(userDto);
     }
