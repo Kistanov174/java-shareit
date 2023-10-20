@@ -3,21 +3,20 @@ spring:
     hibernate:
       ddl-auto: none
       dialect: org.hibernate.dialect.PostgreSQL10Dialect
-      format_sql: true
+      show_sql: true
   sql:
     init.mode: always
 
 #---
 # TODO Append connection to DB
 #---
-  config:
-    activate:
-      on-profile: ci,test
+
   datasource:
-    driverClassName: org.h2.Driver
-    url: jdbc:h2:mem:shareit
-    username: test
-    password: test
+    driverClassName: org.postgresql.Driver
+    database: postgresql
+    url: jdbc:postgresql://localhost:5432/shareit
+    username: sa
+    password: password
 
 logging:
   level:
@@ -28,3 +27,13 @@ logging:
           jpa.JpaTransactionManager: DEBUG
         transaction: INFO
         transaction.interceptor: TRACE
+---
+spring:
+  config:
+    activate:
+      on-profile: ci,test
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:shareit
+    username: test
+    password: test

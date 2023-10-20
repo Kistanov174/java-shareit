@@ -16,6 +16,6 @@ public class MappingUser {
     public User mapToUser(UserDto userDto) {
         String name = userDto.getName();
         String email = userDto.getEmail();
-        return new User(null, name, email);
+        return new User(0, name, email);
     }
 }

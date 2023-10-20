@@ -7,9 +7,14 @@ import java.util.Map;
 
 public interface UserService {
     List<User> findAllUsers();
+
     User findUserById(long id);
+
     User addUser(UserDto userDto);
+
     User updateUser(long id, Map<String, String> fields);
+
     void deleteUser(long id);
+
     void checkEmail(String email);
 }

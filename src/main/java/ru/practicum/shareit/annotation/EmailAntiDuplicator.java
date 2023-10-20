@@ -2,6 +2,8 @@ package ru.practicum.shareit.annotation;
 
 import lombok.RequiredArgsConstructor;
 import ru.practicum.shareit.user.service.UserService;
+
+import javax.persistence.Entity;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
