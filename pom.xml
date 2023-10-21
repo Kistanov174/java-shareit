@@ -5,8 +5,8 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.2</version>
-		<relativePath/>
+		<version>2.7.1</version>
+		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
 	<groupId>ru.practicum</groupId>
@@ -17,56 +17,46 @@
 
 	<properties>
 		<java.version>11</java.version>
-		<jpa.version>2.6.1</jpa.version>
-		<hibernate.version>5.4.17.Final</hibernate.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
 		</dependency>
-
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
@@ -123,7 +113,9 @@
 							<phase>compile</phase>
 						</execution>
 					</executions>
+					<dependencies>
 
+					</dependencies>
 				</plugin>
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
@@ -178,17 +170,17 @@
 											<limit>
 												<counter>BRANCH</counter>
 												<value>COVEREDRATIO</value>
-												<minimum>0.6</minimum>
+												<minimum>0.9</minimum>
 											</limit>
 											<limit>
 												<counter>COMPLEXITY</counter>
 												<value>COVEREDRATIO</value>
-												<minimum>0.6</minimum>
+												<minimum>0.9</minimum>
 											</limit>
 											<limit>
 												<counter>METHOD</counter>
 												<value>COVEREDRATIO</value>
-												<minimum>0.7</minimum>
+												<minimum>0.9</minimum>
 											</limit>
 											<limit>
 												<counter>CLASS</counter>
@@ -201,8 +193,8 @@
 							</configuration>
 						</execution>
 						<execution>
-							<id>jacoco-report</id>
-							<phase>test</phase>
+							<id>jacoco-site</id>
+							<phase>install</phase>
 							<goals>
 								<goal>report</goal>
 							</goals>
@@ -235,4 +227,5 @@
 			</build>
 		</profile>
 	</profiles>
+
 </project>

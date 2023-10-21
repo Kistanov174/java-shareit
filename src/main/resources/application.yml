@@ -5,15 +5,11 @@ spring:
       dialect: org.hibernate.dialect.PostgreSQL10Dialect
       show_sql: true
   sql:
-    init.mode: always
-
-#---
-# TODO Append connection to DB
-#---
+    init:
+     mode: always
 
   datasource:
-    driverClassName: org.postgresql.Driver
-    database: postgresql
+    driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/shareit
     username: sa
     password: password

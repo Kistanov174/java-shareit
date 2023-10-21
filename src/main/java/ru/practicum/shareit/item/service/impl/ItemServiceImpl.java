@@ -116,7 +116,7 @@ public class ItemServiceImpl implements ItemService {
                 .filter(bookingOutDto -> bookingOutDto.getItem()
                         .getId() == itemId && bookingOutDto.getStatus() == Status.APPROVED)
                 .collect(Collectors.toList());
-        if (bookings.size() > 0) {
+        if (!bookings.isEmpty()) {
             Comment comment = mappingComment.mapToItem(commentDto);
             comment.setAuthor(bookings.get(0).getBooker());
             comment.setItem(bookings.get(0).getItem());
