@@ -16,6 +16,8 @@ import ru.practicum.shareit.item.dto.ItemExtDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 import java.util.Map;
 
@@ -49,14 +51,18 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemExtDto> getAllUserItems(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public List<ItemExtDto> getAllUserItems(@RequestHeader("X-Sharer-User-Id") long userId,
+                                            @PositiveOrZero @RequestParam(defaultValue = "0") int from,
+                                            @Positive @RequestParam(defaultValue = "10") int size) {
         log.info("Create request to find all items of user with id = " + userId);
-        return itemService.getAllUserItems(userId);
+        return itemService.getAllUserItems(userId, from, size);
     }
     @GetMapping("/search")
-    public List<ItemDto> findItems(@RequestParam String text) {
+    public List<ItemDto> findItems(@RequestParam String text,
+                                   @PositiveOrZero @RequestParam(defaultValue = "0") int from,
+                                   @Positive @RequestParam(defaultValue = "10") int size) {
         log.info("Create request to find all items is similar in " + text.toLowerCase());
-        return itemService.findItems(text);
+        return itemService.findItems(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

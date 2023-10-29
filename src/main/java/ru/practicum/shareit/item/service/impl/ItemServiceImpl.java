@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
@@ -21,9 +22,10 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.service.UserService;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Comparator;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
@@ -84,19 +86,21 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemExtDto> getAllUserItems(long userId) {
-        return (itemRepository.findAllByOwnerId(userId).stream()
+    public List<ItemExtDto> getAllUserItems(long userId, int from, int size) {
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        return (itemRepository.findAllByOwnerId(userId, page).stream()
                 .map(this::changeItem)
                 .sorted(Comparator.comparing(ItemExtDto::getId))
                 .collect(Collectors.toList()));
     }
 
     @Override
-    public List<ItemDto> findItems(String text) {
+    public List<ItemDto> findItems(String text, int from, int size) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.findAllContainingIgnoreCase(text.toLowerCase()).stream()
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        return itemRepository.findAllContainingIgnoreCase(text.toLowerCase(), page).stream()
                 .map(mappingItem::mapToItemDto)
                 .collect(Collectors.toList());
     }
@@ -111,8 +115,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public CommentDto addComment(long userId, long itemId, CommentDto commentDto) {
         Sort sortByStartDesc = Sort.by(Sort.Direction.DESC, "start");
+        PageRequest page = PageRequest.of(0, 100, sortByStartDesc);
         List<Booking> bookings = bookingRepository.findAllByBookerIdAndEndIsBefore(userId,
-                        LocalDateTime.now(), sortByStartDesc).stream()
+                        LocalDateTime.now(), page).stream()
                 .filter(bookingOutDto -> bookingOutDto.getItem()
                         .getId() == itemId && bookingOutDto.getStatus() == Status.APPROVED)
                 .collect(Collectors.toList());
@@ -123,6 +128,18 @@ public class ItemServiceImpl implements ItemService {
             return mappingComment.mapToItemDto(commentRepository.save(comment));
         }
         throw new ValidationException("User with id = " + userId + " can't add comments for things with id = " + itemId);
+    }
+
+    @Override
+    public ItemDto getItemByRequestId(long requestId) {
+        return mappingItem.mapToItemDto(itemRepository.findByRequestId(requestId));
+    }
+
+    @Override
+    public List<ItemDto> getAllByRequestIdIn(Set<Long> requestId) {
+        return itemRepository.findAllByRequestIdIn(requestId).stream()
+                .map(mappingItem::mapToItemDto)
+                .collect(Collectors.toList());
     }
 
     private ItemExtDto changeItem(Item item) {
