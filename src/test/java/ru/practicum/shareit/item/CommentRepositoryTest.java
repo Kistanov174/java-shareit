@@ -46,7 +46,9 @@ public class CommentRepositoryTest {
         Item saveItem = itemRepository.save(item);
         bookingRepository.save(booking);
         commentRepository.save(comment);
+
         List<Comment> comments = commentRepository.findAllByItemId(saveItem.getId());
+
         Assertions.assertNotNull(comments);
         Assertions.assertEquals(1, comments.size());
         Assertions.assertEquals(1, comments.get(0).getId());

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,5 +35,11 @@ public class ItemRepositoryTest {
         Assertions.assertEquals("паяльник электрический", items.get(0).getDescription());
         Assertions.assertEquals(user, items.get(0).getOwner());
         Assertions.assertEquals(true, items.get(0).getAvailable());
+    }
+
+    @AfterEach
+    void afterEach() {
+        itemRepository.deleteAll();
+        userRepository.deleteAll();
     }
 }

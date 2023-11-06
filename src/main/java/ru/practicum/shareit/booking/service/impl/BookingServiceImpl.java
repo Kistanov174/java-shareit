@@ -41,7 +41,7 @@ public class BookingServiceImpl implements BookingService {
             throw new ObjectNotFoundException("Owner can't book your own things");
         }
         if (isNotAvailable) {
-            throw new ValidationException("");
+            throw new ValidationException("Item" + itemDto.getName() + " isn't available now");
         }
         LocalDateTime start = bookingDto.getStart();
         LocalDateTime end = bookingDto.getEnd();

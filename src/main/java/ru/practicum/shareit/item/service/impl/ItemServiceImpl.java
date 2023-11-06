@@ -149,6 +149,7 @@ public class ItemServiceImpl implements ItemService {
         itemExtDto.setNextBooking(bookingRepository
                 .findFirstByItemIdAndStartAfterAndStatusOrderByStartAsc(item.getId(),
                         LocalDateTime.now(), Status.APPROVED));
+        itemExtDto.setComments(findAllByItemId(item.getId()));
         return itemExtDto;
     }
 

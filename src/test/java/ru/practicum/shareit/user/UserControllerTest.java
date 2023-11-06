@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +12,15 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
+
 import java.nio.charset.StandardCharsets;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -23,8 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.mockito.Mockito.when;
 
 @WebMvcTest(controllers = UserController.class)
 public class UserControllerTest {
@@ -42,7 +47,8 @@ public class UserControllerTest {
     private final Map<String, String> fields = new HashMap<>();
 
     @Test
-    void shouldCreateNewUser() throws Exception {
+    @SneakyThrows
+    void shouldCreateNewUser() {
         when(userService.addUser(Mockito.any()))
                 .thenReturn(user);
 
@@ -55,24 +61,45 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.id", is(user.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(user.getName())))
                 .andExpect(jsonPath("$.email", is(user.getEmail())));
+        verify(userService, times(1))
+                .addUser(userDto);
     }
 
     @Test
-    void shouldGetUserById() throws Exception {
+    @SneakyThrows
+    void createNewUser_whenUserIsNotValid_thenBadRequestThrown() {
+        userDto.setEmail("");
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(userDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+        verify(userService, never())
+                .addUser(userDto);
+    }
+
+    @Test
+    @SneakyThrows
+    void shouldGetUserById() {
+        long userId = 1L;
         when(userService.findUserById(Mockito.anyLong()))
                 .thenReturn(user);
 
-        mvc.perform(get("/users/1")
+        mvc.perform(get("/users/{userId}", userId)
                 .characterEncoding(StandardCharsets.UTF_8)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(user.getId()), Long.class))
                 .andExpect(jsonPath("$.name", is(user.getName())))
                 .andExpect(jsonPath("$.email", is(user.getEmail())));
+        verify(userService, times(1))
+                .findUserById(1L);
     }
 
     @Test
-    void shouldGetAllUsers() throws Exception {
+    @SneakyThrows
+    void shouldGetAllUsers() {
         when(userService.findAllUsers())
                 .thenReturn(users);
 
@@ -81,16 +108,23 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$", hasSize(users.size())))
                 .andExpect(jsonPath("$.[0]id", is(users.get(0).getId()), Long.class))
                 .andExpect(jsonPath("$.[1]id", is(users.get(1).getId()), Long.class));
+        verify(userService, times(1))
+                .findAllUsers();
     }
 
     @Test
-    void shouldDeleteUserWithIdEqualsOne() throws Exception {
-        mvc.perform(delete("/users/1"))
+    @SneakyThrows
+    void shouldDeleteUserWithIdEqualsOne() {
+        long userId = 1L;
+        mvc.perform(delete("/users/{userId}", userId))
                 .andExpect(status().isOk());
+        verify(userService, times(1))
+                .deleteUser(1L);
     }
 
     @Test
-    void shouldGetUpdatedUser() throws Exception {
+    @SneakyThrows
+    void shouldGetUpdatedUser() {
         fields.put("name", "newName");
         when(userService.updateUser(2, fields))
                 .thenReturn(updatedUser);
@@ -102,5 +136,6 @@ public class UserControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is(updatedUser.getName())));
+        verify(userService).updateUser(2L, fields);
     }
 }

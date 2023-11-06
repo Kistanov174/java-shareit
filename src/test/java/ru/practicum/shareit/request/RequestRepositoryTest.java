@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,17 +29,25 @@ public class RequestRepositoryTest {
 
     @Test
     public void shouldGetListRequestsNotFromUser1() {
-        userRepository.save(user1);
-        userRepository.save(user2);
-        requestRepository.save(request1);
-        requestRepository.save(request2);
-        List<Request> requests = requestRepository.findAllExcludingRequestsWithRequesterId(1, page);
+        long user1Id = userRepository.save(user1).getId();
+        long user2Id = userRepository.save(user2).getId();
+        long request1Id = requestRepository.save(request1).getId();
+        long request2Id = requestRepository.save(request2).getId();
+
+        List<Request> requests = requestRepository.findAllExcludingRequestsWithRequesterId(user2Id, page);
+
         Assertions.assertNotNull(requests);
         Assertions.assertEquals(1, requests.size());
-        Assertions.assertEquals(1, requests.get(0).getId());
-        Assertions.assertEquals("нужен дрель", requests.get(0).getDescription());
-        Assertions.assertEquals(user2, requests.get(0).getRequester());
-        Assertions.assertEquals(LocalDateTime.of(2023, 9, 16, 14, 27, 56),
+        Assertions.assertEquals(request2Id, requests.get(0).getId());
+        Assertions.assertEquals("нужен пылесос", requests.get(0).getDescription());
+        Assertions.assertEquals(user1, requests.get(0).getRequester());
+        Assertions.assertEquals(LocalDateTime.of(2023, 10, 21, 19, 47, 12),
                 requests.get(0).getCreated());
+    }
+
+    @AfterEach
+    void afterEach() {
+        userRepository.deleteAll();
+        requestRepository.deleteAll();
     }
 }
