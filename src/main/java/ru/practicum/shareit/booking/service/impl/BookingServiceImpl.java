@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -40,7 +41,7 @@ public class BookingServiceImpl implements BookingService {
             throw new ObjectNotFoundException("Owner can't book your own things");
         }
         if (isNotAvailable) {
-            throw new ValidationException("");
+            throw new ValidationException("Item" + itemDto.getName() + " isn't available now");
         }
         LocalDateTime start = bookingDto.getStart();
         LocalDateTime end = bookingDto.getEnd();
@@ -85,51 +86,49 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingOutDto> getAllUserBookings(long userId, String state) {
+    public List<BookingOutDto> getAllUserBookings(long userId, String state, int from, int size) {
         CheckUser(userId);
         boolean isOwner = false;
-        return toBookingOutDto(getAllBookings(userId, state, isOwner));
+        PageRequest page = from > 0 ? PageRequest.of(from/size, size, SORT_BY_START_DESC)
+                : PageRequest.of(0, size, SORT_BY_START_DESC);
+        return toBookingOutDto(getAllBookings(userId, state, isOwner, page));
     }
 
     @Override
-    public List<BookingOutDto> getAllItemOwnerBookings(long userId, String state) {
+    public List<BookingOutDto> getAllItemOwnerBookings(long userId, String state, int from, int size) {
         CheckUser(userId);
         boolean isOwner = true;
-        return toBookingOutDto(getAllBookings(userId, state, isOwner));
+        PageRequest page = from > 0 ? PageRequest.of(from/size, size, SORT_BY_START_DESC)
+                : PageRequest.of(0, size, SORT_BY_START_DESC);
+        return toBookingOutDto(getAllBookings(userId, state, isOwner, page));
     }
 
     private void CheckUser(long userId) {
         userService.findUserById(userId);
     }
 
-    private List<Booking> getAllBookings(long userId, String state, boolean isOwner) {
+    private List<Booking> getAllBookings(long userId, String state, boolean isOwner, PageRequest page) {
         switch (state) {
             case "ALL":
-                return isOwner?bookingRepository.findAllByItemOwnerId(userId, SORT_BY_START_DESC):
-                        bookingRepository.findAllByBookerId(userId, SORT_BY_START_DESC);
+                return isOwner?bookingRepository.findAllByItemOwnerId(userId, page):
+                        bookingRepository.findAllByBookerId(userId, page);
             case "FUTURE":
-                return isOwner?bookingRepository.findAllByItemOwnerIdAndStartIsAfter(userId, LocalDateTime.now(),
-                        SORT_BY_START_DESC):
-                        bookingRepository.findAllByBookerIdAndStartIsAfter(userId, LocalDateTime.now(),
-                                SORT_BY_START_DESC);
+                return isOwner?bookingRepository.findAllByItemOwnerIdAndStartIsAfter(userId, LocalDateTime.now(), page):
+                        bookingRepository.findAllByBookerIdAndStartIsAfter(userId, LocalDateTime.now(), page);
             case "CURRENT":
                 return isOwner?bookingRepository.findAllByItemOwnerIdAndStartIsBeforeAndEndIsAfter(userId,
-                        LocalDateTime.now(), LocalDateTime.now(), SORT_BY_START_DESC):
+                        LocalDateTime.now(), LocalDateTime.now(), page):
                         bookingRepository.findAllByBookerIdAndStartIsBeforeAndEndIsAfter(userId, LocalDateTime.now(),
-                                LocalDateTime.now(), SORT_BY_START_DESC);
+                                LocalDateTime.now(), page);
             case "PAST":
-                return isOwner?bookingRepository.findAllByItemOwnerIdAndEndIsBefore(userId, LocalDateTime.now(),
-                        SORT_BY_START_DESC):
-                        bookingRepository.findAllByBookerIdAndEndIsBefore(userId, LocalDateTime.now(),
-                                SORT_BY_START_DESC);
+                return isOwner?bookingRepository.findAllByItemOwnerIdAndEndIsBefore(userId, LocalDateTime.now(), page):
+                        bookingRepository.findAllByBookerIdAndEndIsBefore(userId, LocalDateTime.now(), page);
             case "WAITING":
-                return isOwner?bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.WAITING,
-                        SORT_BY_START_DESC):
-                        bookingRepository.findAllByBookerIdAndStatus(userId, Status.WAITING, SORT_BY_START_DESC);
+                return isOwner?bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.WAITING, page):
+                        bookingRepository.findAllByBookerIdAndStatus(userId, Status.WAITING, page);
             case "REJECTED":
-                return isOwner?bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.REJECTED,
-                        SORT_BY_START_DESC):
-                        bookingRepository.findAllByBookerIdAndStatus(userId, Status.REJECTED, SORT_BY_START_DESC);
+                return isOwner?bookingRepository.findAllByItemOwnerIdAndStatus(userId, Status.REJECTED, page):
+                        bookingRepository.findAllByBookerIdAndStatus(userId, Status.REJECTED, page);
             default:
                 log.error("Unknown state:" + state.toUpperCase());
                 throw new ValidationException("Unknown state: UNSUPPORTED_STATUS");

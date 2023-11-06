@@ -15,6 +15,7 @@ public class MappingItem {
         itemDto.setId(item.getId());
         itemDto.setName(item.getName());
         itemDto.setDescription(item.getDescription());
+        itemDto.setRequestId(item.getRequestId());
         itemDto.setAvailable(item.getAvailable());
         return itemDto;
     }
@@ -26,7 +27,7 @@ public class MappingItem {
         itemExtDto.setDescription(item.getDescription());
         itemExtDto.setAvailable(item.getAvailable());
         itemExtDto.setOwner(item.getOwner());
-        itemExtDto.setRequestId(item.getRequest());
+        itemExtDto.setRequestId(item.getRequestId());
         return itemExtDto;
     }
 
@@ -34,7 +35,8 @@ public class MappingItem {
         String name = itemDto.getName();
         String description = itemDto.getDescription();
         boolean available = itemDto.getAvailable();
-        return new Item(null, name, description, available, null, null);
+        Long requestId = itemDto.getRequestId();
+        return new Item(null, name, description, available, null, requestId);
     }
 
     public Item mapToItem(ItemExtDto itemExtDto) {
@@ -43,6 +45,7 @@ public class MappingItem {
         String description = itemExtDto.getDescription();
         boolean available = itemExtDto.getAvailable();
         User owner = itemExtDto.getOwner();
-        return new Item(id, name, description, available, owner, null);
+        Long requestId = itemExtDto.getRequestId();
+        return new Item(id, name, description, available, owner, requestId);
     }
 }
