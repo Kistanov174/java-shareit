@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.repository;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
 import ru.practicum.shareit.booking.model.Booking;
@@ -36,5 +37,10 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     BookingShortDto findFirstByItemIdAndStartBeforeOrderByEndDesc(long itemId, LocalDateTime start);
 
     BookingShortDto findFirstByItemIdAndStartAfterAndStatusOrderByStartAsc(long itemId,
+
                                                                            LocalDateTime start, Status status);
+
+    @Query(value = "select * from booking where ((item_id = ?1)" +
+            " and ((start_date <= ?2 and end_date >= ?2) or (start_date <= ?3 and end_date >= ?3)))", nativeQuery = true)
+    List<Booking> findAllWithCrossingTime(long itemId, LocalDateTime start, LocalDateTime end);
 }

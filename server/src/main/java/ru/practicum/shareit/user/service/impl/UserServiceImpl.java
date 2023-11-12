@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.ObjectConflictException;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -22,22 +23,26 @@ public class UserServiceImpl implements UserService {
     private final MappingUser mappingUser;
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> findAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User findUserById(long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("User with id = " + id + " hasn't found"));
     }
 
     @Override
+    @Transactional
     public User addUser(UserDto userDto) {
         return userRepository.save(mappingUser.mapToUser(userDto));
     }
 
     @Override
+    @Transactional
     public User updateUser(long id, Map<String, String> fields) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("User with id = " + id + " hasn't found"));
@@ -57,11 +62,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(long id) {
         userRepository.deleteById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void checkEmail(String email) {
         List<String> emails = userRepository.findAll().stream()
                 .map(User::getEmail)

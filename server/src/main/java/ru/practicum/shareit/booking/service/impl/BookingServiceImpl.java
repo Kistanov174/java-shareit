@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingOutDto;
 import ru.practicum.shareit.booking.mapper.MappingBooking;
@@ -14,9 +15,9 @@ import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.exception.ObjectNotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
-import ru.practicum.shareit.item.dto.ItemExtDto;
-import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,15 +27,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
-    private final UserService userService;
-    private final ItemService itemService;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
     private final MappingBooking mappingBooking;
     private static final Sort SORT_BY_START_DESC = Sort.by(Sort.Direction.DESC, "start");
 
     @Override
+    @Transactional
     public BookingOutDto createBooking(long bookerId, BookingDto bookingDto) {
         checkUser(bookerId);
-        ItemExtDto itemDto = itemService.getItemById(bookerId, bookingDto.getItemId());
+        long itemId = bookingDto.getItemId();
+        Item itemDto = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ObjectNotFoundException("Iten with id = " + itemId + " doesn't exist"));
         boolean isOwner = bookerId == itemDto.getOwner().getId();
         boolean isNotAvailable = !itemDto.getAvailable();
         if (isOwner) {
@@ -48,11 +52,15 @@ public class BookingServiceImpl implements BookingService {
         if (start.isAfter(end) || start.equals(end)) {
             throw new ValidationException("Dates of start and end are equals");
         }
+        if (checkIsBusyTime(bookingDto)) {
+            throw new ValidationException("This time is busy");
+        }
         Booking booking = mappingBooking.mapToBooking(bookingDto, bookerId);
         return mappingBooking.mapToBookingOutDto(bookingRepository.save(booking));
     }
 
     @Override
+    @Transactional
     public BookingOutDto confirmBooking(long ownerId, String approved, long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ObjectNotFoundException("Booking with id = " + bookingId + " doesn't exist"));
@@ -74,6 +82,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BookingOutDto getBookingById(long userId, long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ObjectNotFoundException("Booking with id = " + bookingId + " doesn't exist"));
@@ -86,6 +95,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingOutDto> getAllUserBookings(long userId, String state, int from, int size) {
         checkUser(userId);
         boolean isOwner = false;
@@ -95,6 +105,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<BookingOutDto> getAllItemOwnerBookings(long userId, String state, int from, int size) {
         checkUser(userId);
         boolean isOwner = true;
@@ -104,7 +115,8 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void checkUser(long userId) {
-        userService.findUserById(userId);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id = " + userId + " doesn't exist"));
     }
 
     private List<Booking> getAllBookings(long userId, String state, boolean isOwner, PageRequest page) {
@@ -139,5 +151,13 @@ public class BookingServiceImpl implements BookingService {
         return bookings.stream()
                 .map(mappingBooking::mapToBookingOutDto)
                 .collect(Collectors.toList());
+    }
+
+    private boolean checkIsBusyTime(BookingDto booking) {
+        long itemId = booking.getItemId();
+        LocalDateTime start = booking.getStart();
+        LocalDateTime end = booking.getEnd();
+        List<Booking> crossingTimeBooking = bookingRepository.findAllWithCrossingTime(itemId, start, end);
+        return !crossingTimeBooking.isEmpty();
     }
 }

@@ -5,7 +5,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtDto;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface ItemService {
     ItemDto addItem(long userId, ItemDto item);
@@ -23,8 +22,6 @@ public interface ItemService {
     CommentDto addComment(long userId, long itemId, CommentDto comment);
 
     ItemDto getItemByRequestId(long requestId);
-
-    List<ItemDto> getAllByRequestIdIn(Set<Long> requestId);
 }
 
 

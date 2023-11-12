@@ -18,9 +18,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Slf4j
 @RestController
 @Validated

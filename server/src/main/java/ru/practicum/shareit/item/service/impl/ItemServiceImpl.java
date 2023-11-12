@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -20,11 +21,10 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Comparator;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -35,19 +35,22 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final MappingItem mappingItem;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final MappingComment mappingComment;
 
     @Override
+    @Transactional
     public ItemDto addItem(long userId, ItemDto itemDto) {
         Item item = mappingItem.mapToItem(itemDto);
-        item.setOwner(userService.findUserById(userId));
+        item.setOwner(userRepository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id = " + userId + " doesn't exist")));
         return  mappingItem.mapToItemDto(itemRepository.save(item));
     }
 
     @Override
+    @Transactional
     public ItemDto updateItem(long userId, Map<String, Object> fields, long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("Iten with id = " + itemId + " doesn't exist"));
@@ -70,6 +73,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ItemExtDto getItemById(long userId, long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("Iten with id = " + itemId + " doesn't exist"));
@@ -86,6 +90,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ItemExtDto> getAllUserItems(long userId, int from, int size) {
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
         return (itemRepository.findAllByOwnerId(userId, page).stream()
@@ -95,6 +100,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ItemDto> findItems(String text, int from, int size) {
         if (text.isBlank()) {
             return Collections.emptyList();
@@ -106,6 +112,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentDto> findAllByItemId(long itemId) {
         return commentRepository.findAllByItemId(itemId).stream()
                 .map(mappingComment::mapToItemDto)
@@ -113,6 +120,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public CommentDto addComment(long userId, long itemId, CommentDto commentDto) {
         Sort sortByStartDesc = Sort.by(Sort.Direction.DESC, "start");
         PageRequest page = PageRequest.of(0, 100, sortByStartDesc);
@@ -131,15 +139,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ItemDto getItemByRequestId(long requestId) {
         return mappingItem.mapToItemDto(itemRepository.findByRequestId(requestId));
-    }
-
-    @Override
-    public List<ItemDto> getAllByRequestIdIn(Set<Long> requestId) {
-        return itemRepository.findAllByRequestIdIn(requestId).stream()
-                .map(mappingItem::mapToItemDto)
-                .collect(Collectors.toList());
     }
 
     private ItemExtDto changeItem(Item item) {
@@ -154,6 +156,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkUser(long userId) {
-        userService.findUserById(userId);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id = " + userId + " doesn't exist"));
     }
 }

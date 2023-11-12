@@ -17,9 +17,6 @@ import ru.practicum.shareit.booking.dto.BookingOutDto;
 import ru.practicum.shareit.booking.service.BookingService;
 import java.util.List;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Slf4j
 @RestController
 @Validated

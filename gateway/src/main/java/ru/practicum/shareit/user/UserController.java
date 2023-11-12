@@ -16,9 +16,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 import javax.validation.Valid;
 import java.util.Map;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Slf4j
 @RestController
 @Validated

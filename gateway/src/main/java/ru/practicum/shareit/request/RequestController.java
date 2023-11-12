@@ -17,9 +17,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
-/**
- * TODO Sprint add-item-requests.
- */
 @Slf4j
 @RestController
 @Validated

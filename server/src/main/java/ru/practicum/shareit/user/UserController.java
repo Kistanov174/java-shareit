@@ -17,9 +17,6 @@ import ru.practicum.shareit.user.service.UserService;
 import java.util.List;
 import java.util.Map;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Slf4j
 @RestController
 @Validated
